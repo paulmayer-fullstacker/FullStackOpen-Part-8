@@ -198,7 +198,7 @@ const resolvers = {
       books = books.concat(newBook); // Add the new Book to the list of books.
 
       return newBook; // Verify new Book and improve client-side effiviency.
-      // 1. We are noy just echoing back what the user sent, but are returning the object as it now exists on the server.
+      // 1. We are now just echoing back what the user sent, but are returning the object as it now exists on the server.
       // 2. Frontend can automatically update its local cache without needing to refetch the entire list of books from the server.
     },
 
