@@ -17,7 +17,7 @@ const Books = (props) => {
     return <div>loading...</div>;
   }
 
-  // Error handling:
+  // Query error handling (Fetch Safety Net):
   if (result.error) {
     // If the server is down or the query is malformed, result.error becomes an object. Display the error message to the user.
     return <div>Error: {result.error.message}</div>;
@@ -35,6 +35,7 @@ const Books = (props) => {
             <th>{/* Empty header for the book title column */}</th>
             <th>author</th>
             <th>published</th>
+            <th>genres</th> {/* Table header for genres */}
           </tr>
           {/* Iterate (map) over the 'books' array. For every book object 'a', return a new table row (tr). */}
           {books.map(
@@ -43,8 +44,11 @@ const Books = (props) => {
             ) => (
               <tr key={a.id}>
                 <td>{a.title}</td>
-                <td>{a.author}</td>
+                {/* author is now an object. So, to isolate he name we need a.author.name */}
+                <td>{a.author.name}</td>
                 <td>{a.published}</td>
+                {/* Join contents of genre array items with ", ", into a single string for rendering */}
+                <td>{a.genres.join(", ")}</td>{" "}
               </tr>
             ),
           )}

@@ -1,0 +1,178 @@
+Apollo Server Test Suite.
+
+Ensure your server is running: node index.js.
+
+Open your browser to http://localhost:4001.
+
+Click on "Query your server" to open the Apollo Sandbox.
+
+Execute testing in this specific order to ensure data integrity. You can copy-paste these into the Operation window of the Sandbox
+
+Data Availability: Verify that the initial "database" is loading correctly.
+
+query CheckInitialData {
+  bookCount
+  authorCount
+  allAuthors {
+    name
+    bookCount
+    born
+  }
+  allBooks {
+    title
+    author
+    genres
+  }
+}
+
+Filtering: Test your logic for filtering by author and genre simultaneously.
+
+query TestFiltering {
+  # Books by Dostoevsky only
+  dostoevsky: allBooks(author: "Fyodor Dostoevsky") {
+    title
+  }
+  # Books in 'refactoring' genre
+  refactoringBooks: allBooks(genre: "refactoring") {
+    title
+  }
+  # Combined filter
+  specificSearch: allBooks(author: "Robert Martin", genre: "agile") {
+    title
+  }
+}
+
+
+Development Testing with JWT Authentication:
+Note: Frontend UI no longer suitable for testing, until user login and authentication is implemeted on the frontend.
+Create a new user:
+
+mutation {
+  createUser(
+    username: "mluukkai",
+    favoriteGenre: "refactoring"
+  ) {
+    username
+    favoriteGenre
+    id
+  }
+}
+
+If we receive a response containing the user object and an ID, the database connection and the model are working correctly.
+
+User log in:
+
+mutation {
+  login(
+    username: "mluukkai",
+    password: "secret"
+  ) {
+    value
+  }
+}
+
+Correct username and password should return the json web token (JWT) a psudo-random string approx ~174 characters long.
+
+
+Test JWT authentication:
+
+query {
+  me {
+    username
+    favoriteGenre
+  }
+}
+
+Add a header:
+
+Key: Authorization
+
+Value: Bearer <PASTE_YOUR_TOKEN_HERE> (Replace with the token string from last test, without quotation marks).
+Invalid request or token will return 'null'. Successfull test will return somethinglike this:
+{
+  "data": {
+    "me": {
+      "username": "mluukkai",
+      "favoriteGenre": "refactoring"
+    }
+  }
+}
+
+
+
+Add book test (with JWT):
+
+mutation {
+  addBook(
+    title: "Testing Auth",
+    author: "Security Expert",
+    published: 2024,
+    genres: ["tech"]
+  ) {
+    title
+    author {
+      name
+    }
+  }
+}
+
+and edit author test (with JWT):
+
+mutation {
+  editAuthor(name: "Security Expert", setBornTo: 1990) {
+    name
+    born
+  }
+}
+
+Run this with currupt token in the header value: return an error response with the message "not authenticated". This confirms our if (!currentUser) check is working.
+Run with correct token. Return: a book object back. This confirms the context is correctly extracting the user and allowing the resolver to proceed.
+
+
+--------------------------------------------------------
+Redundant test. Used pre authentication.
+
+*** AUthetication via Login is now required before being able to complete mutation tests ***
+Mutations: Test adding a book. Notice that we add an author that doesn't exist yet ("J.R.R. Tolkien") to test your "add author if missing" logic.
+
+mutation AddNewData {
+  addBook(
+    title: "The Fellowship of the Ring",
+    author: "J.R.R. Tolkien",
+    published: 1954,
+    genres: ["fantasy", "classic"]
+  ) {
+    title
+    id
+  }
+  
+  editAuthor(
+    name: "Sandi Metz", 
+    setBornTo: 1963
+  ) {
+    name
+    born
+  }
+}
+
+
+Recommended Testing Procedure
+To truly "stress test" our logic, follow this manual checklist in the UI:
+
+The bookCount sync: Run allAuthors. Look at Robert Martin. His bookCount should be 2. Now run addBook for a new book by Robert Martin. Run allAuthors again; his count should now be 3.
+
+The "New Author" side effect: Run authorCount. Use addBook with a brand new author name. Run authorCount again; it should have increased by 1.
+
+Null handling: Run editAuthor for a name that does not exist in your library. Verify that it returns null rather than crashing the server.
+
+Array integrity: Filter allBooks by a genre that doesn't exist (e.g., "cooking"). Verify it returns an empty array [], not null.
+
+
+Test MongoDb connection. Db will be empty at first. So, run this mutation first.
+
+mutation {
+  addBook(title: "The Silent Patient", author: "Alex Michaelides", published: 2019, genres: ["thriller"]) {
+    title
+    author
+  }
+}

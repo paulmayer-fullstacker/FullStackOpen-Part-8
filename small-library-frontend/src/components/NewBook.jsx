@@ -3,7 +3,7 @@ import { useState } from "react"; // Used for new book form component state.
 import { useMutation } from "@apollo/client/react"; // Import React specific useMutation hook from the Apollo library.
 import { CREATE_BOOK, ALL_BOOKS, ALL_AUTHORS } from "../queries"; // Import the mutation, and the queries needed to refresh after adding a book
 
-const NewBook = (props) => {
+const NewBook = ( props ) => { // Prop 'setError' maps to the 'notify' function in App.jsx.
   // Local state for the add Book form fields. Initially empty.
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -16,8 +16,24 @@ const NewBook = (props) => {
     // Ensure that Authors and Books views are updated, by rerunning these queries when a newBook is added.
     refetchQueries: [{ query: ALL_BOOKS }, { query: ALL_AUTHORS }],
     onError: (error) => {
-      // Error handling in case of server comms failure (i.e., validation failure).
-      console.log(error.graphQLErrors[0]?.message || error.message);
+      // Log the whole thing so we can finally see it if it exists
+      console.log("DEBUG ERROR:", error)
+    
+      const errorDetails = error.graphQLErrors?.length > 0
+        ? error.graphQLErrors[0].extensions?.error
+        : error.message
+    
+      props.setError(errorDetails || "An unknown error occurred")
+      // // Look for the specific Mongoose error details from the backend extensions
+      // const errorDetails = error.graphQLErrors[0]?.extensions?.error;
+      // // Construct a descriptive message for the user
+      // const errorMessage = errorDetails 
+      //   ? `Adding book failed: ${errorDetails}` 
+      //   : "Adding book failed. Please check your connection.";
+      // // Pass the constructed message to the notification state
+      // props.setError(errorMessage);
+      // // Error handling in case of server comms failure (i.e., validation failure).
+      // console.log(error.graphQLErrors[0]?.message || error.message);
     },
   });
   // Guard Clause Conditional rendering: if props.show===true, the add book button has been activated. If not Do Nothing
@@ -28,6 +44,20 @@ const NewBook = (props) => {
   const submit = async (event) => {
     event.preventDefault(); // Prevent the browser from reloading the page
 
+    // Frontend Validation. Prevent sending empty/invalid data that would trigger a 400 Schema error.
+    if (!title || title.trim() === "") {  // Could check for title > 4. Let GraphQLError deal with that.
+      props.setError("Title is required");
+      return;
+    }
+    if (!author || author.trim() === "") {  // Could check for name > 3. Let GraphQLError deal with that.
+      props.setError("Author is required");
+      return;
+    }
+    if (!published) {
+      props.setError("Publication year is required");
+      return;
+    }
+    // If validation passes, continue to add book.
     console.log("add book...");
 
     // addBook() function triggers the CREATE_BOOK mutation using the variables collected from our state.

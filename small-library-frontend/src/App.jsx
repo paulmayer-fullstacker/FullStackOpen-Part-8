@@ -3,13 +3,23 @@ import { useState } from "react"; // Import the useState Hook: used to track whi
 import Authors from "./components/Authors"; // Import components. Each of these components will have its own page (view).
 import Books from "./components/Books";
 import NewBook from "./components/NewBook";
+import Notify from "./components/Notify"; // Import Notify component for notification style and rendition.
 
 const App = () => {
   // Set the default (opening) page to Authors, when the app opens.
   const [page, setPage] = useState("authors");
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const notify = (message) => {
+    setErrorMessage(message);
+    setTimeout(() => {
+      setErrorMessage(null);
+    }, 10000);
+  };
 
   return (
     <div>
+      <Notify errorMessage={errorMessage} />
       <div>
         {/* Set the page view per the button selection */}
         <button onClick={() => setPage("authors")}>authors</button>
@@ -17,11 +27,11 @@ const App = () => {
         <button onClick={() => setPage("add")}>add book</button>
       </div>
       {/* show used in Authors.jsx for conditional rendering. If page is authors (default) Authors show===true*/}
-      <Authors show={page === "authors"} />
+      <Authors show={page === "authors"} setError={notify} />   {/* Pass notify to components that perform mutations */}
       {/* show used in Books.jsx for conditional rendering. If books button selected, page becomes books and Books show===true */}
       <Books show={page === "books"} />
       {/* If add book buttonselected, NewBook show now becomes true */}
-      <NewBook show={page === "add"} />
+      <NewBook show={page === "add"} setError={notify} />
     </div>
   );
 };

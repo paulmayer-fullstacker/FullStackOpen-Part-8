@@ -9,7 +9,7 @@ import { ApolloProvider } from "@apollo/client/react"; // Import ApolloProvider 
 const client = new ApolloClient({
   // Link Apollo Client to GraphQL server.
   link: new HttpLink({
-    uri: "http://localhost:4000",
+    uri: "http://localhost:4001",
   }),
   // InMemoryCache: Local storage where Apollo saves query results, thus reducing network traffic.
   cache: new InMemoryCache(),

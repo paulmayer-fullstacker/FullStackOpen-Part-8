@@ -13,7 +13,33 @@ const Authors = (props) => {
 
   // The hook (useMutation) defines the mutation logic and communication with the server. The hook returns a function that we call updateBirthYear().
   // On form submission, updateBirthYear() is called. updateBirthYear() triggers the GraphQL mutation.
-  const [updateBirthYear] = useMutation(EDIT_AUTHOR, {});
+  const [updateBirthYear] = useMutation(EDIT_AUTHOR, {
+  refetchQueries: [{ query: ALL_AUTHORS }], // Ensure the list updates after a change
+    // Catching Database connectivity errors or data type mismatches.
+    onError: (error) => {
+      // Log the whole thing so we can finally see it if it exists
+      console.log("DEBUG ERROR:", error)
+    
+      const errorDetails = error.graphQLErrors?.length > 0
+        ? error.graphQLErrors[0].extensions?.error
+        : error.message
+    
+      props.setError(errorDetails || "An unknown error occurred")
+    //   // Look for the specific Mongoose error details we sent from the backend
+    //   const errorDetails = error.graphQLErrors[0]?.extensions?.error;
+    //   // Construct the professional display message
+    //   const errorMessage = errorDetails 
+    //     ? `Update Failed: ${errorDetails}` 
+    //     : "Editing author failed. Please check your connection.";
+
+    //   // Use the prop passed from App.jsx to show the notification
+    //   props.setError(errorMessage);
+    //   // Pass the error message back to App.jsx via the setError prop
+    //   // props.setError(error.message)
+    //   // Log for developer debugging
+    //   console.log(error.graphQLErrors[0]?.message || error.message);
+    },
+  });
   // Conditional rendering: if this page isn't active, show nothing.
   if (!props.show) {
     return null;
@@ -24,8 +50,9 @@ const Authors = (props) => {
     return <div>loading...</div>;
   }
 
-  // Error handling for the author list.
+  // Query error handling (Fetch Safety Net) for the author list.
   if (result.error) {
+    // If the server is down or the query is malformed, result.error becomes an object. Display the error message to the user.
     return <div>Error: {result.error.message}</div>;
   }
 
@@ -37,6 +64,12 @@ const Authors = (props) => {
 
   const submit = async (event) => {
     event.preventDefault();
+
+    // Frontend Validation. Prevent sending an empty string/NaN to the server. Satisfy the "Int!" requirement in queries.js and avoids a 400 error.
+    if (!born || born.trim() === "") {
+      props.setError("Please provide a valid birthyear");
+      return;
+    }
 
     // Trigger the GraphQL mutation.
     updateBirthYear({
