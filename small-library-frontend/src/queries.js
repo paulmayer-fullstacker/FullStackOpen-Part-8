@@ -14,10 +14,21 @@ export const ALL_AUTHORS = gql`
   }
 `;
 
+// GraphQL query to retrieve my (logged in user's) information, inc. favourite genres. Used to set favourite/recommended books.
+export const ME = gql`
+  query {
+    me {
+      username
+      favouriteGenre
+    }
+  }
+`;
+
 // GraphQL query to retrieve all books.
 export const ALL_BOOKS = gql`
-  query {
-    allBooks {
+  query allBooks($genre: String) {
+    # Now get all books filtered by a genre argument.
+    allBooks(genre: $genre) {
       title
       published
       author {
@@ -26,6 +37,15 @@ export const ALL_BOOKS = gql`
       }
       genres # Added to render genres for all books.
       id
+    }
+  }
+`;
+
+//  GraphQL mutation to log in a user.
+export const LOGIN = gql`
+  mutation login($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
+      value
     }
   }
 `;

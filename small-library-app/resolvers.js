@@ -62,7 +62,7 @@ const resolvers = {
     createUser: async (root, args) => {
       const user = new User({
         username: args.username,
-        favoriteGenre: args.favoriteGenre, // Argument property derived from task brief
+        favouriteGenre: args.favouriteGenre, // Argument property favorite changed from task brief.
       });
       // Attempt to save and catch Mongoose validation errors (like non-unique username).
       return user.save().catch((error) => {

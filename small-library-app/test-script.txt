@@ -1,3 +1,4 @@
+// test-script.txt:
 Apollo Server Test Suite.
 
 Ensure your server is running: node index.js.
@@ -50,10 +51,10 @@ Create a new user:
 mutation {
   createUser(
     username: "mluukkai",
-    favoriteGenre: "refactoring"
+    favouriteGenre: "refactoring"
   ) {
     username
-    favoriteGenre
+    favouriteGenre
     id
   }
 }
@@ -79,7 +80,7 @@ Test JWT authentication:
 query {
   me {
     username
-    favoriteGenre
+    favouriteGenre
   }
 }
 
@@ -93,7 +94,7 @@ Invalid request or token will return 'null'. Successfull test will return someth
   "data": {
     "me": {
       "username": "mluukkai",
-      "favoriteGenre": "refactoring"
+      "favouriteGenre": "refactoring"
     }
   }
 }
@@ -174,5 +175,18 @@ mutation {
   addBook(title: "The Silent Patient", author: "Alex Michaelides", published: 2019, genres: ["thriller"]) {
     title
     author
+  }
+}
+
+
+Create new user with favourite genres:
+
+mutation {
+  createUser(
+    username: "testuser",
+    favouriteGenre: "patterns"  # Use your updated spelling here!
+  ) {
+    username
+    favouriteGenre
   }
 }

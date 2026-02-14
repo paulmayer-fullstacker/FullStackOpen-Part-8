@@ -3,7 +3,7 @@
 const mongoose = require("mongoose"); // Imports mongoose library (an Object Data Modeling (ODM) tool for MongoDB and Node.js).
 // Create new instance of a Mongoose Schema to define the structure and rules of our 'User' documents.
 const schema = new mongoose.Schema({
-  // Defines data fields for the user: 'username', 'favoriteGenre'.
+  // Defines data fields for the user: 'username', 'favouriteGenre'.
   username: {
     // Define data type and characteristics.
     type: String,
@@ -11,8 +11,8 @@ const schema = new mongoose.Schema({
     unique: true,
     minlength: 3, // Minimum char count for username. Requiring validation.
   },
-  favoriteGenre: {
-    // Schema key name from task brief.
+  favouriteGenre: {
+    // Schema key name changed from task brief.
     type: String,
     required: true,
   },

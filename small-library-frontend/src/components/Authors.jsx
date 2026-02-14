@@ -14,30 +14,31 @@ const Authors = (props) => {
   // The hook (useMutation) defines the mutation logic and communication with the server. The hook returns a function that we call updateBirthYear().
   // On form submission, updateBirthYear() is called. updateBirthYear() triggers the GraphQL mutation.
   const [updateBirthYear] = useMutation(EDIT_AUTHOR, {
-  refetchQueries: [{ query: ALL_AUTHORS }], // Ensure the list updates after a change
+    refetchQueries: [{ query: ALL_AUTHORS }], // Ensure the list updates after a change
     // Catching Database connectivity errors or data type mismatches.
     onError: (error) => {
       // Log the whole thing so we can finally see it if it exists
-      console.log("DEBUG ERROR:", error)
-    
-      const errorDetails = error.graphQLErrors?.length > 0
-        ? error.graphQLErrors[0].extensions?.error
-        : error.message
-    
-      props.setError(errorDetails || "An unknown error occurred")
-    //   // Look for the specific Mongoose error details we sent from the backend
-    //   const errorDetails = error.graphQLErrors[0]?.extensions?.error;
-    //   // Construct the professional display message
-    //   const errorMessage = errorDetails 
-    //     ? `Update Failed: ${errorDetails}` 
-    //     : "Editing author failed. Please check your connection.";
+      console.log("DEBUG ERROR:", error);
 
-    //   // Use the prop passed from App.jsx to show the notification
-    //   props.setError(errorMessage);
-    //   // Pass the error message back to App.jsx via the setError prop
-    //   // props.setError(error.message)
-    //   // Log for developer debugging
-    //   console.log(error.graphQLErrors[0]?.message || error.message);
+      const errorDetails =
+        error.graphQLErrors?.length > 0
+          ? error.graphQLErrors[0].extensions?.error
+          : error.message;
+      // Use the prop passed from App.jsx to show the notification.
+      props.setError(errorDetails || "An unknown error occurred");
+      //   // Look for the specific Mongoose error details we sent from the backend
+      //   const errorDetails = error.graphQLErrors[0]?.extensions?.error;
+      //   // Construct the professional display message
+      //   const errorMessage = errorDetails
+      //     ? `Update Failed: ${errorDetails}`
+      //     : "Editing author failed. Please check your connection.";
+
+      //   // Use the prop passed from App.jsx to show the notification
+      //   props.setError(errorMessage);
+      //   // Pass the error message back to App.jsx via the setError prop
+      //   // props.setError(error.message)
+      //   // Log for developer debugging
+      //   console.log(error.graphQLErrors[0]?.message || error.message);
     },
   });
   // Conditional rendering: if this page isn't active, show nothing.
@@ -99,34 +100,41 @@ const Authors = (props) => {
           ))}
         </tbody>
       </table>
-
-      {/* Set Birthyear form with dropdown Author selector */}
-      <h3>Set birthyear</h3>
-      <form onSubmit={submit}>
-        <div>
-          name
-          {/* Dropdown selector: removes potential for erronius input. */}
-          <select value={name} onChange={({ target }) => setName(target.value)}>
-            <option value="" disabled>
-              select author...
-            </option>
-            {authors.map((a) => (
-              <option key={a.id} value={a.name}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          born
-          <input
-            type="number"
-            value={born}
-            onChange={({ target }) => setBorn(target.value)}
-          />
-        </div>
-        <button type="submit">update author</button>
-      </form>
+      {/* Conditional UI rendering: 'Set birthyear' form only rendered if a 'token' prop exists. Thus, only logged-in user can edit authors. */}
+      {props.token && (
+        <>
+          {/* Set Birthyear form with dropdown Author selector */}
+          <h3>Set birthyear</h3>
+          <form onSubmit={submit}>
+            <div>
+              name
+              {/* Dropdown selector: removes potential for erronius input. */}
+              <select
+                value={name}
+                onChange={({ target }) => setName(target.value)}
+              >
+                <option value="" disabled>
+                  select author...
+                </option>
+                {authors.map((a) => (
+                  <option key={a.id} value={a.name}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              born
+              <input
+                type="number"
+                value={born}
+                onChange={({ target }) => setBorn(target.value)}
+              />
+            </div>
+            <button type="submit">update author</button>
+          </form>
+        </>
+      )}
     </div>
   );
 };

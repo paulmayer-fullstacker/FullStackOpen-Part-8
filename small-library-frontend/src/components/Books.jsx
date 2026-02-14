@@ -1,9 +1,12 @@
 // src/components/Books.jsx:
+import { useState } from "react"; // Used to managethe state of the books view when filtered by genre.
 import { useQuery } from "@apollo/client/react"; // Import React specific useQuery hook from the Apollo library.
 import { ALL_BOOKS } from "../queries"; // Import the predefined GraphQL query object from our queries file.
 // Define functional component 'Books', accepting 'props' from the parent (App.jsx).
 const Books = (props) => {
-  // /* Initialize the GraphQL query, executing immediately on render. 'result' is an object containing properties: loading, error, and data.
+  // Initialise state for the genre filter.
+  const [genreFilter, setGenreFilter] = useState("all genres");
+  // Initialise the GraphQL query, executing immediately on render. 'result' is an object containing properties: loading, error, and data.
   const result = useQuery(ALL_BOOKS);
   // Conditional Rendering - Guard Clause: 'props.show' (boolean) is passed from App.jsx (page === "books"). If it is false, enter this block.
   if (!props.show) {
@@ -24,21 +27,37 @@ const Books = (props) => {
   }
   // Once loading is false and there is no error, we can extract the array of book objects from the result.data object.
   const books = result.data.allBooks;
+
+  // Extract all unique genres from the books array to create genre buttons. flatMap converts an array of arrays into a single flat array,
+  // thus getting all genres into a sinle array. Converting this to a Set, remove duplicates.
+  const allGenres = [...new Set(books.flatMap((b) => b.genres))];
+
+  // Filter books based on the current state
+  const booksFilteredByGenre =
+    genreFilter === "all genres"
+      ? books
+      : books.filter((b) => b.genres.includes(genreFilter));
+
   // Render Logic: If we reach this point, props.show is true and data is ready to be displayed.
   return (
     <div>
       <h2>books</h2>
-
+      {/* Display current filter if one is active */}
+      {genreFilter !== "all genres" && (
+        <p>
+          in genre <strong>{genreFilter}</strong>
+        </p>
+      )}
       <table>
         <tbody>
           <tr>
             <th>{/* Empty header for the book title column */}</th>
             <th>author</th>
             <th>published</th>
-            <th>genres</th> {/* Table header for genres */}
+            <th>genres</th>
           </tr>
           {/* Iterate (map) over the 'books' array. For every book object 'a', return a new table row (tr). */}
-          {books.map(
+          {booksFilteredByGenre.map(
             (
               a, // Key attribute required to identify table row. Use the unique 'book id' from the database to track this specific row. Using the key, React can just rerender a single row (that has changed) without rerendering the entire component.
             ) => (
@@ -48,12 +67,21 @@ const Books = (props) => {
                 <td>{a.author.name}</td>
                 <td>{a.published}</td>
                 {/* Join contents of genre array items with ", ", into a single string for rendering */}
-                <td>{a.genres.join(", ")}</td>{" "}
+                <td>{a.genres.join(", ")}</td>
               </tr>
             ),
           )}
         </tbody>
       </table>
+      {/* Render genre buttons */}
+      <div style={{ marginTop: "20px" }}>
+        {allGenres.map((g) => (
+          <button key={g} onClick={() => setGenreFilter(g)}>
+            {g}
+          </button>
+        ))}
+        <button onClick={() => setGenreFilter("all genres")}>all genres</button>
+      </div>
     </div>
   );
 };

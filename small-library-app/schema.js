@@ -4,7 +4,7 @@
 const typeDefs = /* GraphQL */ `
   type User {
     username: String!
-    favoriteGenre: String! # Field name from task brief.
+    favouriteGenre: String! # Field name changed from task brief. Was favorite.
     id: ID!
   }
 
@@ -37,8 +37,8 @@ const typeDefs = /* GraphQL */ `
   }
 
   type Mutation {
-    # Mutation to creates a new user.
-    createUser(username: String!, favoriteGenre: String!): User
+    # Mutation to creates a new user, inc. their favourite genres.
+    createUser(username: String!, favouriteGenre: String!): User
 
     # Mutation to log in as user, and so receive a valid token.
     login(username: String!, password: String!): Token
