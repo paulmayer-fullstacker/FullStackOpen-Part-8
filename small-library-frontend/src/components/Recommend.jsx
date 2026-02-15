@@ -4,19 +4,24 @@ import { ALL_BOOKS, ME } from "../queries"; // Import specific GraphQL query def
 
 const Recommend = (props) => {
   // Execute 'me' query immediately, fetching the logged-in user's profile information. currentUser will contain 'loading', 'error', and 'data' states.
-  const currentUser = useQuery(ME);
+  const currentUser = useQuery(ME, {
+    skip: !props.show, // However, skip this fetch if the page isn't active (i.e., when the user starts on the Authors page). Removes validation bug!
+  });
 
   // Extract user's favouriteGenre from the query data using optional chaining (?.). Value will be 'undefined' while the query is loading or if the user is not found.
-  const favouriteGenre = currentUser.data?.me?.favouriteGenre;
+  const _favouriteGenre = currentUser.data?.me?.favouriteGenre; // So, using optional chaining (?.) prevents a crash if data is not yet loaded.
+  const favouriteGenre = _favouriteGenre?.trim(); // .trim() ensures a space-only string is treated as empty, preventing the app from searching for a genre that doesnot exist.
+  // This only realy fixed a problem create by my test mutation (favouriteGenre: " "). This validation would have been easier by place char length restriction on the genre field type.
+
   // Execute the 'allBooks' query passing the user's favouriteGenre as a GraphQL variable.
   const favouriteBooks = useQuery(ALL_BOOKS, {
     variables: { genre: favouriteGenre }, // Variables: By sending a parameterised query to the backend. GraphQL server uses it in its database query, only returning books of the corresponding genre.
-    skip: !favouriteGenre, // The 'skip' option prevents this query from running automatically. It stays 'skipped' (true) until favouriteGenre has a value from the earlier query.
+    skip: !favouriteGenre || !props.show, // The 'skip' option prevents this query from running automatically. It stays 'skipped' (true) until favouriteGenre has a value from the earlier query AND the page is active.
   });
   // Guard Clause: If the parent (App.jsx) is not currently showing this page, do n continue processing or render.
   if (!props.show) return null;
   // Loading State Handler: Show 'loading...' if still fetching the user profile, or if genre present but still fetching the filtered book list.
-  if (currentUser.loading || (favouriteGenre && favouriteBooks.loading)) {
+  if (currentUser.loading) {
     return <div>loading...</div>;
   }
 
