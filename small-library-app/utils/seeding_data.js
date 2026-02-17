@@ -1,5 +1,17 @@
 // utils/seeding_data.js:
 // User Data
+const testUsers = [
+  {
+    username: "testuser1",
+    favouriteGenre: "refactoring",
+  },
+  {
+    username: "testuser2",
+    favouriteGenre: "classic", // Users must have a favourite genre at seeding.
+  },
+];
+
+// Author Data
 const testAuthors = [
   {
     name: "Robert Martin",
@@ -26,7 +38,7 @@ const testAuthors = [
   },
 ];
 
-// Blog Data
+// Book Data
 const testBooks = [
   {
     title: "Clean Code",
@@ -81,6 +93,7 @@ const testBooks = [
 
 // Exports the arrays containng author and book data for use in both seeding and testing scripts.
 module.exports = {
+  testUsers,
   testAuthors,
   testBooks,
 };

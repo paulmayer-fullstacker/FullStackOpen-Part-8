@@ -4,7 +4,12 @@ require("dotenv").config(); // Load our MONGODB_URI variable from .env into proc
 // Import the requird Mongoose models to interact with the MongoDB collections.
 const Author = require("./models/author"); // Imports Author model to define how author documents should be structured in the collection.
 const Book = require("./models/book"); // Import Book model ... .
-const { testAuthors, testBooks } = require("./utils/seeding_data"); // Destructures the arrays of seeding data (testAuthors and testBooks).
+const User = require("./models/user"); // Users and their favourite genre.
+const { testAuthors, testBooks, testUsers } = require("./utils/seeding_data"); // Destructures the arrays of seeding data (testAuthors and testBooks).
+
+// ADD THIS TEMPORARILY TO DEBUG:
+console.log("Test Users to be seeded:", testUsers);
+
 // Defines asynchronous function to handle the sequential steps of the database seeding process.
 const seedDatabase = async () => {
   try {
@@ -17,6 +22,7 @@ const seedDatabase = async () => {
     console.log("Clearing existing data...");
     await Author.deleteMany({});
     await Book.deleteMany({});
+    await User.deleteMany({});
 
     // Seed Authors directly from the testAuthors array.
     console.log("Seeding authors...");
@@ -25,9 +31,14 @@ const seedDatabase = async () => {
     // Seed Books directly from the testBooks array. Since 'author' is just a String in your model, no ID mapping is needed.
     console.log("Seeding books...");
     await Book.insertMany(testBooks);
+
+    // Seed Users
+    console.log("Seeding users...");
+    await User.insertMany(testUsers);
+
     // Log template literal proclaiming success and confiring how may items (authors / boks) seeded.
     console.log(
-      `Success! Seeded ${testAuthors.length} authors and ${testBooks.length} books.`,
+      `Success! Seeded ${testAuthors.length} authors, ${testBooks.length} books, and ${testUsers.length} users.`,
     );
   } catch (error) {
     // Log any errors (like validation failures or connection timeouts)

@@ -1,4 +1,5 @@
 // src/components/Recommend.jsx:
+import { useEffect } from "react"; // Import useEffect to handle manual refetch from the Db. So recomended books will update a new book from the Dbrather than use stale book list from cache.
 import { useQuery } from "@apollo/client/react"; // Import useQuery hook, allowing React to communicate with the Apollo Provider.
 import { ALL_BOOKS, ME } from "../queries"; // Import specific GraphQL query definitions needed for this view.
 
@@ -18,7 +19,17 @@ const Recommend = (props) => {
     variables: { genre: favouriteGenre }, // Variables: By sending a parameterised query to the backend. GraphQL server uses it in its database query, only returning books of the corresponding genre.
     skip: !favouriteGenre || !props.show, // The 'skip' option prevents this query from running automatically. It stays 'skipped' (true) until favouriteGenre has a value from the earlier query AND the page is active.
   });
-  // Guard Clause: If the parent (App.jsx) is not currently showing this page, do n continue processing or render.
+
+  // This useEffect ensures the recommendation list is updated from the server, not the local cache.
+  useEffect(() => {
+    // Only trigger the refetch if the page is currently being shown (props.show), there is a genre to filter by.
+    if (props.show && favouriteGenre) {
+      // refetch() forces Apollo to bypass local cache, fetching the latest list of books in the user's favorite genre from the server.
+      favouriteBooks.refetch();
+    }
+  }, [favouriteGenre, favouriteBooks, props.show]); // Dependencies array: When favouriteGenre, favouriteBooks or props.show change, trigger favouriteBooks.refetch().
+
+  // Guard Clause: If the parent (App.jsx) is not currently showing this page, do not continue processing or render.
   if (!props.show) return null;
   // Loading State Handler: Show 'loading...' if still fetching the user profile, or if genre present but still fetching the filtered book list.
   if (currentUser.loading) {
