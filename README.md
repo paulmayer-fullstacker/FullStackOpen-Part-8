@@ -104,7 +104,7 @@ bookCount
 
 Validation: Check the server console.
 
-- Pass: We should see your debug log 'N+1 Check: Resolving bookCount for...' print exactly once for each author in the database.
+- Pass: We should see our debug log 'N+1 Check: Resolving bookCount for...' print exactly once for each author in the database.
 - Fail: If you see dozens of logs or repeating author names, the populate('books') logic in allAuthors isn't being utilised correctly.
 
 ---
