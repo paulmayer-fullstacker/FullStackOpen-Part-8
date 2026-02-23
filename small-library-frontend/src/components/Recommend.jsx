@@ -79,11 +79,11 @@ const Recommend = (props) => {
             <th>published</th>
           </tr>
           {/* Loop through the genre filtered book array and render a row for each */}
-          {books.map((b) => (
-            <tr key={b.id}>
-              <td>{b.title}</td>
-              <td>{b.author.name}</td>
-              <td>{b.published}</td>
+          {books.map((book) => (
+            <tr key={book.id}>
+              <td>{book.title}</td>
+              <td>{book.author.name}</td>
+              <td>{book.published}</td>
             </tr>
           ))}
         </tbody>

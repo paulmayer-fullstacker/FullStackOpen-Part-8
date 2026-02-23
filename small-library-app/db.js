@@ -5,6 +5,8 @@ const mongoose = require("mongoose"); // Imports mongoose library (an Object Dat
 const connectToDatabase = async (uri) => {
   // mongoose.set("strictQuery", false); // Maintain consistency through newer versins of Mongoos. In v6, strictQuery===false by default, v7 strictQuery===true.
   console.log("connecting to database URI:", uri); // Log connection attempt. Helpful for debugging (check if the URI is being loaded correctly from environment variables).
+  // mongoose.set("debug", true); // Switch on Db logging. Remember to switch off when not testing/debugging, to remove performance burden.
+  // console.log("mongoosw is currently set to debug mode.");
 
   try {
     // Attempts to establish a connection to MongoDB; 'await' pauses execution until the connection succeeds or fails.

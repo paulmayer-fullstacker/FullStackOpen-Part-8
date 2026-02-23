@@ -15,6 +15,14 @@ const schema = new mongoose.Schema({
     // Optional. Not required and not unique.
     type: Number,
   },
+  // N+1 Resolution: Stores ObjectIds of books by this author.
+  // Thus allowing us to use .populate('books') in the allAuthors resolver, fetching the author and their book count in a single database round-trip.
+  books: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Book", // Reference the Model name.
+    },
+  ],
 });
 // Compile the schema into a Model and export it.  Model name 'Author'; Mongoose will look for a collection named 'authors' (plural/lowercase).
 module.exports = mongoose.model("Author", schema);

@@ -54,5 +54,10 @@ const typeDefs = /* GraphQL */ `
     # Mutation to update an existing author's birth year
     editAuthor(name: String!, setBornTo: Int!): Author
   }
+
+  # Subscription
+  type Subscription {
+    bookAdded: Book!
+  }
 `;
 module.exports = typeDefs;

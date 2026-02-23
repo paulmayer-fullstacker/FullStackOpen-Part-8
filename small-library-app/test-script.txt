@@ -190,3 +190,6 @@ mutation {
     favouriteGenre
   }
 }
+
+
+Exercises 8.23 test:

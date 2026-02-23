@@ -13,7 +13,10 @@ const schema = new mongoose.Schema({
     type: Number,
   },
   author: {
-    type: String,
+    // N+1 Resolution: By using an ObjectId reference instead of a String, we enable Mongoose's .populate() method. This allows the server
+    // to fetch the full author object in the same query as the book, eliminating the need for a separate database call for every book.
+    type: mongoose.Schema.Types.ObjectId, // n+1 resolution: author changed from String to ObjectId reference.
+    ref: "Author",
     required: true,
   },
   genres: [{ type: String }], // 'genres' field: Array of Strings. Not required, not unique, no restrictions to validate.

@@ -26,19 +26,6 @@ const Authors = (props) => {
           : error.message;
       // Use the prop passed from App.jsx to show the notification.
       props.setError(errorDetails || "An unknown error occurred");
-      //   // Look for the specific Mongoose error details we sent from the backend
-      //   const errorDetails = error.graphQLErrors[0]?.extensions?.error;
-      //   // Construct the professional display message
-      //   const errorMessage = errorDetails
-      //     ? `Update Failed: ${errorDetails}`
-      //     : "Editing author failed. Please check your connection.";
-
-      //   // Use the prop passed from App.jsx to show the notification
-      //   props.setError(errorMessage);
-      //   // Pass the error message back to App.jsx via the setError prop
-      //   // props.setError(error.message)
-      //   // Log for developer debugging
-      //   console.log(error.graphQLErrors[0]?.message || error.message);
     },
   });
   // Conditional rendering: if this page isn't active, show nothing.
@@ -91,11 +78,11 @@ const Authors = (props) => {
             <th>born</th>
             <th>books</th>
           </tr>
-          {authors.map((a) => (
-            <tr key={a.id}>
-              <td>{a.name}</td>
-              <td>{a.born}</td>
-              <td>{a.bookCount}</td>
+          {authors.map((author) => (
+            <tr key={author.id}>
+              <td>{author.name}</td>
+              <td>{author.born}</td>
+              <td>{author.bookCount}</td>
             </tr>
           ))}
         </tbody>
@@ -116,9 +103,9 @@ const Authors = (props) => {
                 <option value="" disabled>
                   select author...
                 </option>
-                {authors.map((a) => (
-                  <option key={a.id} value={a.name}>
-                    {a.name}
+                {authors.map((author) => (
+                  <option key={author.id} value={author.name}>
+                    {author.name}
                   </option>
                 ))}
               </select>

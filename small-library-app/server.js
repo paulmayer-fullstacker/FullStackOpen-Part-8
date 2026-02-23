@@ -1,43 +1,87 @@
 // server.js:
 // Responsible for configuring and starting the Apollo Server.
+const { WebSocketServer } = require("ws");
+const { useServer } = require("graphql-ws/use/ws");
 const { ApolloServer } = require("@apollo/server"); // Import Apollo Server class to handle GraphQL logic.
-const { startStandaloneServer } = require("@apollo/server/standalone"); // Import helper function to create a standalone server instance.
-const jwt = require("jsonwebtoken"); // Import JSON Web Token library to decode and validate security tokens sent from the frontend.
+// const { startStandaloneServer } = require("@apollo/server/standalone"); // Import helper function to create a standalone server instance.
 
+//const { expressMiddleware } = require("@apollo/server/express4"); // Changed from standalone
+const { expressMiddleware } = require("@as-integrations/express5");
+const {
+  ApolloServerPluginDrainHttpServer,
+} = require("@apollo/server/plugin/drainHttpServer");
+const { makeExecutableSchema } = require("@graphql-tools/schema");
+const express = require("express");
+const http = require("http");
+
+const jwt = require("jsonwebtoken"); // Import JSON Web Token library to decode and validate security tokens sent from the frontend.
+const cors = require("cors");
 const User = require("./models/user"); // Import the Mongoose User model. Required to find the user in Db.
 const resolvers = require("./resolvers"); // Import resolver functions (logic that fetches data for your GraphQL queries/mutations).
 const typeDefs = require("./schema"); // Import GraphQL schema definitions (Type Definitions), defining our API structure.
 // Retrieve secret key from environment variables for security, or defaults to a hardcoded string for development.
 const JWT_SECRET = process.env.JWT_SECRET || "HARD_CODED_JWT_SECRET";
-// port(parameter), assigned value of PORT (argument) used in startServer(PORT) in index.js.
-const startServer = (port) => {
-  const server = new ApolloServer({
-    // Creates a new ApolloServer instance by combining our schema (typeDefs) and logic (resolvers).
-    typeDefs,
-    resolvers,
+
+const startServer = async (port) => {
+  const app = express();
+  const httpServer = http.createServer(app);
+
+  // Setup WebSocket server for Subscriptions
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: "/", // Subscription endpoint
   });
-  // Start the standalone server and begin listening for incoming HTTP requests on the specified port.
-  startStandaloneServer(server, {
-    listen: { port },
-    // Context function: runs for EVERY incoming request before it reaches our resolvers.
-    context: async ({ req, res }) => {
-      // If request exists, extract and assign the 'authorization' field from the HTTP header.
-      const auth = req ? req.headers.authorization : null; // Extract Authorisation header.
 
-      if (auth && auth.startsWith("Bearer ")) {
-        // if there is authorisation in the header and it starts with 'Bearer' .. Strip 'Bearer ' (first 7 chars), verify token and place in decodedToken var.
-        const decodedToken = jwt.verify(auth.substring(7), JWT_SECRET);
-        // Find the user in the Db by the id in the token, and assign to currentUser
-        const currentUser = await User.findById(decodedToken.id);
+  // Create a schema instance (required for subscriptions)
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-        // currentUser object is passed as the 'context' argument to all resolvers.
-        return { currentUser };
-      }
-    },
-  }).then(({ url }) => {
-    // Once the server starts successfully, it returns a Promise that resolves with the server's URL.
-    console.log(`Server ready at ${url}`); // Log the URL (i.e.: http://localhost:4001) so I know where to point the btowser to find the Apollo Client.
+  const serverCleanup = useServer({ schema }, wsServer);
+
+  // Setup Apollo Server
+  const server = new ApolloServer({
+    schema,
+    plugins: [
+      // Proper shutdown for the HTTP server
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      {
+        // Proper shutdown for the WebSocket server
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              await serverCleanup.dispose();
+            },
+          };
+        },
+      },
+    ],
+  });
+  // Must start the Apollo Server before applying middleware
+  await server.start();
+
+  // Apply Middleware (Handling Auth for HTTP here)
+  app.use(
+    "/",
+    cors(),
+    express.json(),
+    expressMiddleware(server, {
+      context: async ({ req }) => {
+        // req exists for HTTP requests, but will be undefined for WebSocket (subscription) connections.
+        // This means context.currentUser will be null for subscriptions.
+        const auth = req ? req.headers.authorization : null;
+        if (auth && auth.startsWith("Bearer ")) {
+          // Verify jwt and then find user.
+          const decodedToken = jwt.verify(auth.substring(7), JWT_SECRET);
+          const currentUser = await User.findById(decodedToken.id);
+          return { currentUser };
+        }
+      },
+    }),
+  );
+
+  httpServer.listen(port, () => {
+    console.log(`Server is now running on http://localhost:${port}`);
+    console.log(`Subscriptions are ready at ws://localhost:${port}`);
   });
 };
-// Export the startServer function so it can be triggered from your main index.js file.
+
 module.exports = startServer;

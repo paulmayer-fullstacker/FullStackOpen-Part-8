@@ -3,6 +3,8 @@ import { useState } from "react"; // Used for new book form component state.
 import { useMutation } from "@apollo/client/react"; // Import React specific useMutation hook from the Apollo library.
 import { CREATE_BOOK, ALL_BOOKS, ALL_AUTHORS } from "../queries"; // Import the mutation, and the queries needed to refresh after adding a book
 
+import { addNewBookToCache } from "../utils/apolloCache"; // Import the helper function from your utils
+
 const NewBook = (props) => {
   // Prop 'setError' maps to the 'notify' function in App.jsx.
   // Local state for the add Book form fields. Initially empty.
@@ -14,18 +16,15 @@ const NewBook = (props) => {
 
   // Initialize the mutation hook
   const [addBook] = useMutation(CREATE_BOOK, {
-    // Ensure that Authors and Books views are updated, by rerunning these queries when a newBook is added.
-    refetchQueries: [
-      // Refresh the cache for the query used to generate genre buttons (unfiltered)
-      { query: ALL_BOOKS },
-      // Explicitly refresh the cache for the "All Genres" table view. In Books.jsx, 'all genres' sends a variable { genre: null }.
-      // Apollo treats this as a unique cache key, so we must target it specifically.
-      { query: ALL_BOOKS, variables: { genre: null } },
-      // Update the authors list in case a new author was created as a side-effect.
-      { query: ALL_AUTHORS },
-    ],
+    // The 'update' function gives us access to the data returned by the mutation to update the cache instantly. More efficient than refetching the whole book list.
+    update: (cache, response) => {
+      const addedBook = response.data.addBook;
+      addNewBookToCache(cache, addedBook);
+    },
+    // Refetch allAuthors, because adding a book changes the Author's bookCount in the DB. It is easier to refetch than to manually update every author's count.
+    refetchQueries: [{ query: ALL_AUTHORS }], // Still refetch authors because a new book affects author.bookCount
     onError: (error) => {
-      // Log the whole thing so we can finally see it if it exists
+      // Log the whole thing for debugging. So we can see it if it exists.
       console.log("DEBUG ERROR:", error);
 
       const errorDetails =
